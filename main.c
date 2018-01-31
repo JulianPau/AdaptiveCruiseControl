@@ -5,7 +5,8 @@ uint8_t WadcPer, XadcPer;
 uint16_t WadcNum, XadcNum;
 
 //control variables
-uint8_t W, X, Prun, E, Y, Kp;
+int8_t W, X, E, Y, Kp;
+float Prun;
 
 //program variables
 float  Um, Uemk, U, Rv, Rm;
@@ -21,11 +22,11 @@ int main(void)
 	toggle = 0;
 	W = 0;
 	Um = 0;
-	U = 5.0;
+	U = 4.3;
 	Rv = 4.0;
-	Rm = 5.0;
+	Rm = 5.1;
 	Uemk = 0;
-	Kp = 4;
+	Kp = 1;
 
     //PWM
 	DDRB |= (1 << DDB3);					// PB3 as pwm output
@@ -52,8 +53,8 @@ int main(void)
 			WadcPer = (WadcNum / 1024.0) * 100;		// max 1024 or 0
 			W = (255.0/100.0) * WadcPer;			// set dutycycle
 			
-			//ohne regelung
-			//OCR2 = W;			
+			// ohne regelung
+			// OCR2 = W;			
 
 			toggle = 0;
 			
@@ -67,36 +68,43 @@ int main(void)
 			while(ADCSRA &(1<<ADSC));     			// Wait until conversion is finished
         	ADCSRA |= (1<<ADSC);          			// Start the next conversion
 			
-			//voltage on Rm numeric value
+			// voltage on Rm numeric value
 			XadcNum = ADC;
 
-			//calculate to percentage
-			XadcPer = (XadcNum / 1024.0) * 100;
+			// calculate to percentage
+			XadcPer = (XadcNum / 1024.0) * 100.0;
 			
-			//calculate to voltage - 5V/100 = Um/XadcPer
+			// calculate to voltage -> 5V/100 = Um/XadcPer
 			Um = 5.0/100.0 * XadcPer;
-			
-			//aktual measured percentage
-			Prun = 100.0/0.62 * Um;
 
-			//calculate PWM signal between 0-255
+			// aktual measured percentage
+			//Prun = 100.0/0.62 * Um;
+
+			// calculate PWM signal between 0-255
+			// X = (255.0/100.0) * Prun;
+
+			// Motorspannung rueckrechnen
+			Uemk = U - (Um * (1-Rv/Rm));
+			
+			Prun = Uemk * 20.0;//100.0/5.0
+			
 			X = (255.0/100.0) * Prun;
 
-			//Motorspannung rueckrechnen
-			//Uemk = U - Um * (1-Rv/Rm);
+			E = 100 - X;
 
+			//P control: Y = Kp * E;
+			Y = Kp * E;
+
+
+			OCR2 = Y;
+			
+			
+			
 			toggle = 1;
 		}
 
 		//calculate resulting diffrence
-		E = W - X;
 
-		//P control: Y = Kp * E;
-		Y = Kp * E;
-
-
-
-		OCR2 = Y;
 
 	}
 
