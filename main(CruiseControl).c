@@ -70,13 +70,10 @@ int main(void)
             ADCSRA |= (1<<ADSC);                           // Start the first conversion
             while(ADCSRA &(1<<ADSC));                      // Wait until conversion is finished
             ADCSRA |= (1<<ADSC);                           // Start the next conversion
-                  MadcNum = ADC;
-                  
-                  Umot = (MadcNum * 5.0) / 1024.0;
-
-                  MadcPer = (MadcNum *  50.0) / 512.0;      // max 1023 or 0
+            MadcNum = ADC;
+            Umot = (MadcNum * 5.0) / 1024.0;
+            MadcPer = (MadcNum *  50.0) / 512.0;      // max 1023 or 0
             M = (255.0 * MadcPer) / 100.0;                               
-
 
             // ADC1
             // Measure motorcurrent with Rm
@@ -89,39 +86,35 @@ int main(void)
             // voltage on Rm numeric value
             XadcNum = ADC;
                   
-                  XadcPer = (XadcNum *  50.0) / 512.0;     // max 1023 or 0
+            XadcPer = (XadcNum *  50.0) / 512.0;     // max 1023 or 0
             X = (255.0 * XadcPer) / 100.0;                               
  
             // calculate to voltage ->         
             Um = (XadcNum * 5.0) / 1024.0;       
 
             //Uemk = U - (Umotor * (Rv/Rm * Um);
-                  Uemk = 5.0 - Umot - (2.0/5.0 * Um); 
+            Uemk = 5.0 - Umot - (2.0/5.0 * Um); 
             
-                  XadcNum = ((Uemk / 5.0) * 1024.0);
+            XadcNum = ((Uemk / 5.0) * 1024.0);
 
-                  XadcPer = (XadcNum * 50) / 512;           // max 1023 or 0
+            XadcPer = (XadcNum * 50) / 512;           // max 1023 or 0
             X = (255.0 * XadcPer) / 100.0; 
-                        
+                   
             E = W - X;
 
             Y = Kp * E; 
                   
             //Limitation of Y
-                        if ( Y < 0) {
-                              Y = 0;
-                              //Indicate LED
-                              PORTD &= ~(1 << PD7);
-                        } 
-                        if ( Y > 255) {
-                              Y = 255;
-                              PORTD |=  (1 << PD7);
-                        }     
-
-
-                  OCR2 = Y;
-
-                  
+            if ( Y < 0) {
+                  Y = 0;
+                  //Indicate LED
+                  PORTD &= ~(1 << PD7);
+            } 
+            if ( Y > 255) {
+                  Y = 255;
+                  PORTD |=  (1 << PD7);
+            }     
+            OCR2 = Y;              
       }
 
 }
